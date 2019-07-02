@@ -10,6 +10,11 @@ describe('Parameter', () => {
       const queryData = {
         name: 'Text Parameter',
         query: "SELECT '{{test-parameter}}' AS parameter",
+        options: {
+          parameters: [
+            { name: 'test-parameter', title: 'Test Parameter', type: 'text' },
+          ],
+        },
       };
 
       createQuery(queryData, false)
@@ -111,6 +116,11 @@ describe('Parameter', () => {
       const queryData = {
         name: 'Date Parameter',
         query: "SELECT '{{test-parameter}}' AS parameter",
+        options: {
+          parameters: [
+            { name: 'test-parameter', title: 'Test Parameter', type: 'date' },
+          ],
+        },
       };
 
       createQuery(queryData, false)
@@ -120,10 +130,12 @@ describe('Parameter', () => {
         ParameterSettings-test-parameter
         ParameterTypeSelect
         DateParameterTypeOption
+        UseCurrentDateTimeCheckbox
         SaveParameterSettings 
       `);
 
-      const now = new Date(2019, 0, 1).getTime(); // January 1, 2019 timestamp
+      const now = new Date();
+      now.setDate(1);
       cy.clock(now);
     });
 
@@ -141,7 +153,7 @@ describe('Parameter', () => {
         .click();
 
       cy.getByTestId('DynamicTable')
-        .should('contain', '15/01/19');
+        .should('contain', Cypress.moment().format('15/MM/YY'));
     });
   });
 
@@ -150,6 +162,11 @@ describe('Parameter', () => {
       const queryData = {
         name: 'Date and Time Parameter',
         query: "SELECT '{{test-parameter}}' AS parameter",
+        options: {
+          parameters: [
+            { name: 'test-parameter', title: 'Test Parameter', type: 'datetime-local' },
+          ],
+        },
       };
 
       createQuery(queryData, false)
@@ -159,11 +176,13 @@ describe('Parameter', () => {
         ParameterSettings-test-parameter
         ParameterTypeSelect
         DateTimeParameterTypeOption
+        UseCurrentDateTimeCheckbox
         SaveParameterSettings
       `);
 
-      const now = new Date(2019, 0, 1).getTime(); // January 1, 2019 timestamp
-      cy.clock(now);
+      const now = new Date();
+      now.setDate(1);
+      cy.clock(now.getTime());
     });
 
     afterEach(() => {
@@ -182,8 +201,11 @@ describe('Parameter', () => {
       cy.get('.ant-calendar-ok-btn')
         .click();
 
-      cy.getByTestId('DynamicTable')
-        .should('contain', '2019-01-15 00:00');
+      cy.get('.ant-calendar-input').then(($input) => {
+        const now = Cypress.moment($input.val(), 'DD/MM/YY HH:mm');
+        cy.getByTestId('DynamicTable')
+          .should('contain', now.format('YYYY-MM-15 HH:mm'));
+      });
     });
 
     it('shows the current datetime after clicking in Now', () => {
@@ -195,8 +217,11 @@ describe('Parameter', () => {
         .contains('Now')
         .click();
 
-      cy.getByTestId('DynamicTable')
-        .should('contain', '2019-01-01 00:00');
+      cy.get('.ant-calendar-input').then(($input) => {
+        const now = Cypress.moment($input.val(), 'DD/MM/YY HH:mm');
+        cy.getByTestId('DynamicTable')
+          .should('contain', now.format('YYYY-MM-01 HH:mm'));
+      });
     });
   });
 });
